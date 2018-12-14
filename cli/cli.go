@@ -74,6 +74,7 @@ func ParseArguments() CliOptions {
 func help() {
 	log.Println("-b [binding]\tNetwork binding (use :7419 to listen on all interfaces), default: localhost:7419")
 	log.Println("-w [binding]\tWeb UI binding (use :7420 to listen on all interfaces), default: localhost:7420")
+	log.Println("-r [redis address]\tRemote redis address (eg locahost:6379), no default")
 	log.Println("-e [env]\tSet environment (development, production), default: development")
 	log.Println("-l [level]\tSet logging level (warn, info, debug, verbose), default: info")
 	log.Println("-v\t\tShow version and license information")
