@@ -45,7 +45,7 @@ test: clean generate ## Execute test suite
 		github.com/contribsys/faktory/test \
 		github.com/contribsys/faktory/util \
 		github.com/contribsys/faktory/webui
-	TEST_REDIS_EXTERNAL=localhost:6379 go test github.com/contribsys/faktory/storage -p 1 -parallel
+	TEST_REDIS_EXTERNAL=localhost:6379 go test github.com/contribsys/faktory/storage -v -p 1 -parallel 1
 
 dimg: xbuild ## Make a Docker image for the current version
 	#eval $(shell docker-machine env default)
