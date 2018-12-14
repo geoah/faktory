@@ -40,7 +40,15 @@ var (
 	redisMutex = sync.Mutex{}
 )
 
+const (
+	TCPAddressPrefix = "tcp://"
+)
+
 func BootRedis(path string, sock string) (func(), error) {
+	if strings.HasPrefix(sock, TCPAddressPrefix) {
+		return func() {}, nil
+	}
+
 	redisMutex.Lock()
 	defer redisMutex.Unlock()
 	if _, ok := instances[sock]; ok {
@@ -164,10 +172,16 @@ func BootRedis(path string, sock string) (func(), error) {
 }
 
 func OpenRedis(sock string) (Store, error) {
-	redisMutex.Lock()
-	defer redisMutex.Unlock()
-	if _, ok := instances[sock]; !ok {
-		return nil, errors.New("redis not booted, cannot start")
+	network := "unix"
+	if strings.HasPrefix(sock, TCPAddressPrefix) {
+		network = "tcp"
+		sock = sock[len(TCPAddressPrefix):]
+	} else {
+		redisMutex.Lock()
+		defer redisMutex.Unlock()
+		if _, ok := instances[sock]; !ok {
+			return nil, errors.New("redis not booted, cannot start")
+		}
 	}
 
 	db := 0
@@ -180,7 +194,7 @@ func OpenRedis(sock string) (Store, error) {
 	rs.initSorted()
 
 	rs.rclient = redis.NewClient(&redis.Options{
-		Network:  "unix",
+		Network:  network,
 		Addr:     sock,
 		DB:       db,
 		PoolSize: 1000,

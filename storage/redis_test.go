@@ -37,7 +37,12 @@ func withRedis(t *testing.T, name string, fn func(*testing.T, Store)) {
 	dir := fmt.Sprintf("/tmp/faktory-test-%s", name)
 	defer os.RemoveAll(dir)
 
+	wipeRedis := false
 	sock := fmt.Sprintf("%s/redis.sock", dir)
+	if addr := os.Getenv("TEST_REDIS_EXTERNAL"); addr != "" {
+		sock = TCPAddressPrefix + addr
+		wipeRedis = true
+	}
 	stopper, err := BootRedis(dir, sock)
 	if stopper != nil {
 		defer stopper()
@@ -51,6 +56,13 @@ func withRedis(t *testing.T, name string, fn func(*testing.T, Store)) {
 		panic(err)
 	}
 	defer store.Close()
+
+	if wipeRedis {
+		res := store.Redis().FlushAll()
+		if err := res.Err(); err != nil {
+			panic("could not wipe redis err: " + err.Error())
+		}
+	}
 
 	fn(t, store)
 }

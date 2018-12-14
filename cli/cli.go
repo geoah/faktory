@@ -22,6 +22,7 @@ import (
 type CliOptions struct {
 	CmdBinding       string
 	WebBinding       string
+	RedisAddress     string
 	Environment      string
 	ConfigDirectory  string
 	LogLevel         string
@@ -29,11 +30,12 @@ type CliOptions struct {
 }
 
 func ParseArguments() CliOptions {
-	defaults := CliOptions{"localhost:7419", "localhost:7420", "development", "/etc/faktory", "info", "/var/lib/faktory/db"}
+	defaults := CliOptions{"localhost:7419", "localhost:7420", "localhost:6379", "development", "/etc/faktory", "info", "/var/lib/faktory/db"}
 
 	flag.Usage = help
 	flag.StringVar(&defaults.WebBinding, "w", "localhost:7420", "WebUI binding")
 	flag.StringVar(&defaults.CmdBinding, "b", "localhost:7419", "Network binding")
+	flag.StringVar(&defaults.RedisAddress, "r", "localhost:6379", "Remote redis address")
 	flag.StringVar(&defaults.LogLevel, "l", "info", "Logging level (error, warn, info, debug)")
 	flag.StringVar(&defaults.Environment, "e", "development", "Environment (development, production)")
 
@@ -134,6 +136,9 @@ func BuildServer(opts CliOptions) (*server.Server, func(), error) {
 	}
 
 	sock := fmt.Sprintf("%s/redis.sock", opts.StorageDirectory)
+	if opts.RedisAddress != "" {
+		sock = storage.TCPAddressPrefix + opts.RedisAddress
+	}
 	stopper, err := storage.BootRedis(opts.StorageDirectory, sock)
 	if err != nil {
 		return nil, stopper, err
